@@ -13,13 +13,13 @@ PeachOS_arm is a simple operating system for the Raspberry Pi 3B+.
 Build
 
 ```bash
-$ make
+$ make all
 ```
 
 Run the following command to run the kernel on QEMU:
 
 ```bash
-$ qemu-system-aarch64 -m 1024 -M raspi3b -cpu cortex-a53 -kernel kernel8.img -nographic -serial null -chardev stdio,id=uart1 -serial chardev:uart1 -monitor none   
+$ qemu-system-aarch64 -m 1024 -M raspi3b -cpu cortex-a53 -kernel ./bin/kernel8.img -nographic -serial null -chardev stdio,id=uart1 -serial chardev:uart1 -monitor none   
 ```
 
 ## References

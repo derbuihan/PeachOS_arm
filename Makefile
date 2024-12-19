@@ -1,32 +1,42 @@
+.PHONY: all clean
 
-ARMGNU ?= aarch64-elf
-COPS = -g -Wall -nostdlib -nostartfiles -ffreestanding -Isrc -mgeneral-regs-only
-ASMOPS = -Isrc
-OBJ_FILES = $(BUILD_DIR)/memory/mm.S.o $(BUILD_DIR)/utils/utils.S.o $(BUILD_DIR)/uart/mini_uart.o $(BUILD_DIR)/kernel.o $(BUILD_DIR)/boot.S.o
+SRC_DIR := ./src
+BUILD_DIR := ./build
+BIN_DIR := ./bin
 
-BUILD_DIR = build
-SRC_DIR = src
+C_SOURCES := $(shell find $(SRC_DIR) -type f -name '*.c')
+ASM_SOURCES := $(shell find $(SRC_DIR) -type f -name '*.S')
 
-all: kernel8.img
+C_OBJS := $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.c.o, $(C_SOURCES))
+S_OBJS := $(patsubst $(SRC_DIR)/%.S, $(BUILD_DIR)/%.S.o, $(ASM_SOURCES))
 
-kernel8.img: $(SRC_DIR)/linker.ld $(OBJ_FILES)
-	$(ARMGNU)-ld -T $(SRC_DIR)/linker.ld -o $(BUILD_DIR)/kernel8.elf $(OBJ_FILES)
-	$(ARMGNU)-objcopy $(BUILD_DIR)/kernel8.elf -O binary kernel8.img
+OBJS := $(S_OBJS) $(C_OBJS)
 
-$(BUILD_DIR)/memory/mm.S.o: $(SRC_DIR)/memory/mm.s
-	$(ARMGNU)-gcc $(ASMOPS) -MMD -c $(SRC_DIR)/memory/mm.S -o $(BUILD_DIR)/memory/mm.S.o
+INCLUDES := -I./src
+FLAGS := -g -Wall -nostdlib -nostartfiles -ffreestanding -mgeneral-regs-only
 
-$(BUILD_DIR)/utils/utils.S.o: $(SRC_DIR)/utils/utils.s
-	$(ARMGNU)-gcc $(ASMOPS) -MMD -c $(SRC_DIR)/utils/utils.S -o $(BUILD_DIR)/utils/utils.S.o
+CC := aarch64-elf-gcc
+LD := aarch64-elf-ld
+OBJCOPY := aarch64-elf-objcopy
 
-$(BUILD_DIR)/uart/mini_uart.o: $(SRC_DIR)/uart/mini_uart.c
-	$(ARMGNU)-gcc $(COPS) -MMD -c $(SRC_DIR)/uart/mini_uart.c -o $(BUILD_DIR)/uart/mini_uart.o
+all: $(BIN_DIR)/kernel8.img
 
-$(BUILD_DIR)/kernel.o: $(SRC_DIR)/kernel.c
-	$(ARMGNU)-gcc $(COPS) -MMD -c $(SRC_DIR)/kernel.c -o $(BUILD_DIR)/kernel.o
+$(BIN_DIR)/kernel8.img: $(BUILD_DIR)/kernel8.elf
+	@mkdir -p $(BIN_DIR)
+	$(OBJCOPY) $(BUILD_DIR)/kernel8.elf -O binary $(BIN_DIR)/kernel8.img
 
-$(BUILD_DIR)/boot.S.o: $(SRC_DIR)/boot.s
-	$(ARMGNU)-gcc $(ASMOPS) -MMD -c $(SRC_DIR)/boot.S -o $(BUILD_DIR)/boot.S.o
+$(BUILD_DIR)/kernel8.elf: $(OBJS) $(SRC_DIR)/linker.ld
+	$(LD) -T $(SRC_DIR)/linker.ld -o $(BUILD_DIR)/kernel8.elf $(OBJS)
+
+$(BUILD_DIR)/%.c.o: $(SRC_DIR)/%.c
+	@mkdir -p $(@D)
+	$(CC) $(FLAGS) $(INCLUDES) -I$(dir $<) -c $< -o $@
+
+$(BUILD_DIR)/%.S.o: $(SRC_DIR)/%.S
+	@mkdir -p $(@D)
+	$(CC) $(FLAGS) $(INCLUDES) -I$(dir $<) -c $< -o $@
 
 clean:
-	rm -rf *.img $(OBJ_FILES) $(BUILD_DIR)/*.elf
+	rm -f $(BIN_DIR)/kernel8.img
+	rm -f $(BUILD_DIR)/kernel8.elf
+	rm -f $(OBJS)
