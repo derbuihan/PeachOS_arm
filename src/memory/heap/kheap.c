@@ -3,24 +3,39 @@
 #include "config.h"
 #include "heap.h"
 #include "kernel.h"
+#include "memory/memory.h"
 
-struct heap kernel_heap;
+HEAP_BLOCK_TABLE_ENTRY entries[PEACHOS_HEAP_SIZE_BLOCKS];
+struct heap_table kernel_heap_table = {
+    .entries = entries,
+    .total = PEACHOS_HEAP_SIZE_BLOCKS,
+};
+struct heap kernel_heap = {
+    .table = &kernel_heap_table,
+    .saddr = (void *)PEACHOS_HEAP_ADDRESS,
+};
 
 void kheap_init() {
-  kernel_heap.start_addr = (void *)PEACHOS_HEAP_ADDRESS;
-  kernel_heap.end_addr =
-      (void *)(PEACHOS_HEAP_ADDRESS + PEACHOS_HEAP_SIZE_BYTES);
-  kernel_heap.current_addr = (void *)PEACHOS_HEAP_ADDRESS;
+  void *end = kernel_heap.saddr + PEACHOS_HEAP_SIZE_BYTES;
+
+  int res = heap_create(&kernel_heap, kernel_heap.saddr, end,
+                        PEACHOS_HEAP_BLOCK_SIZE);
+  if (res < 0) {
+    panic("Failed to create heap \r\n");
+  }
 }
 
 void *kmalloc(size_t size) {
-  void *allocation = kernel_heap.current_addr;
-  if (kernel_heap.current_addr + size > kernel_heap.end_addr) {
-    print("Kernel heap out of memory!\r\n");
-    return NULL;
+  void *ptr = heap_malloc(&kernel_heap, size);
+  return ptr;
+}
+
+void *kzalloc(size_t size) {
+  void *ptr = kmalloc(size);
+  if (ptr) {
+    memset(ptr, 0, size);
   }
-  kernel_heap.current_addr += size;
-  return allocation;
+  return ptr;
 }
 
 void kfree(void *ptr) {}

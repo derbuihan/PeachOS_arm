@@ -2,5 +2,6 @@
 #define PEACHOS_KERNEL_H
 
 void print(const char *str);
+void panic(char *message);
 
-#endif // PEACHOS_KERNEL_H
+#endif  // PEACHOS_KERNEL_H

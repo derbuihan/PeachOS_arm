@@ -13,7 +13,7 @@ S_OBJS := $(patsubst $(SRC_DIR)/%.S, $(BUILD_DIR)/%.S.o, $(ASM_SOURCES))
 OBJS := $(S_OBJS) $(C_OBJS)
 
 INCLUDES := -I./src
-FLAGS := -g -Wall -nostdlib -nostartfiles -ffreestanding -mgeneral-regs-only
+FLAGS := -g -Wall -O0 -nostdlib -nostartfiles -ffreestanding -mgeneral-regs-only
 
 CC := aarch64-elf-gcc
 LD := aarch64-elf-ld
@@ -26,7 +26,7 @@ $(BIN_DIR)/kernel8.img: $(BUILD_DIR)/kernel8.elf
 	$(OBJCOPY) $(BUILD_DIR)/kernel8.elf -O binary $(BIN_DIR)/kernel8.img
 
 $(BUILD_DIR)/kernel8.elf: $(OBJS) $(SRC_DIR)/linker.ld
-	$(LD) -T $(SRC_DIR)/linker.ld -o $(BUILD_DIR)/kernel8.elf $(OBJS)
+	$(LD) -g -T $(SRC_DIR)/linker.ld -o $(BUILD_DIR)/kernel8.elf $(OBJS)
 
 $(BUILD_DIR)/%.c.o: $(SRC_DIR)/%.c
 	@mkdir -p $(@D)
