@@ -8,7 +8,7 @@ put32:
     ldp fp, lr, [sp], 16
     ret
 
-;# extern unsigned int get32(unsigned long x0);
+;# get32(unsigned long x0);
 .globl get32
 get32:
     stp fp, lr, [sp, -16]!

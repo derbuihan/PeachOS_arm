@@ -1,7 +1,7 @@
 #include "peripherals/mini_uart.h"
 
 #include "peripherals/gpio.h"
-#include "utils/utils.h"
+#include "io/io.h"
 
 void uart_send(char c) {
   // wait until the UART transmit buffer is empty.

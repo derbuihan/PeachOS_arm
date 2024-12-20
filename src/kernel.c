@@ -1,6 +1,8 @@
+#include "memory/heap/kheap.h"
+#include "memory/memory.h"
 #include "uart/mini_uart.h"
 
-void uart_send_string(char* str) {
+void print(char *str) {
   for (int i = 0; str[i] != '\0'; i++) {
     uart_send((char)str[i]);
   }
@@ -8,7 +10,11 @@ void uart_send_string(char* str) {
 
 void kernel_main(void) {
   uart_init();
-  uart_send_string("Hello, world!\r\n");
+  kheap_init();
+
+  char *str = kmalloc(15 * sizeof(char));
+  memcpy(str, "Hello, world!\r\n", 15);
+  print(str);
 
   while (1) uart_send(uart_recv());
 }
